@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 
 const redis = require('./redistools');
-const pgpdb = require('./postgresTools');
+import sql from './postgresTools.js'
 
 
 async function isAuthorized(req)
