@@ -209,8 +209,7 @@ async function getPostgresConnectionObject()
 {
     try
     {
-        let pgp = await pgp('postgres://admin:pass@192.168.0.121:5432/cjremmett');
-        return pgp;
+        return pgp('postgres://admin:pass@192.168.0.121:5432/cjremmett');
     }
     catch(err)
     {
