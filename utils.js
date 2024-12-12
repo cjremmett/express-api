@@ -2,8 +2,7 @@ const express = require('express');
 const router = express.Router();
 
 const redis = require('./redistools');
-const pgp = require('pg-promise')(/* options */);
-let db = getPostgresConnectionObject();
+const pgpdb = require('./postgresTools');
 
 
 async function isAuthorized(req)
@@ -183,7 +182,7 @@ async function appendToLog(category, level, message)
 {
     try
     {
-        db.query('INSERT INTO express_logs (timestamp, category, level, message) VALUES ($1, $2, $3, $4)', [getUTCTimestampString(), category, level, message]);
+        pgpdb.db.query('INSERT INTO express_logs (timestamp, category, level, message) VALUES ($1, $2, $3, $4)', [getUTCTimestampString(), category, level, message]);
     }
     catch(err)
     {
@@ -196,24 +195,11 @@ async function logResourceAccess(url, ipAddress)
 {
     try
     {
-        db.query('INSERT INTO resource_access_logs (timestamp, location, ip_address) VALUES ($1, $2, $3)', [getUTCTimestampString(), url, ipAddress]);
+        pgpdb.db.query('INSERT INTO resource_access_logs (timestamp, location, ip_address) VALUES ($1, $2, $3)', [getUTCTimestampString(), url, ipAddress]);
     }
     catch(err)
     {
         appendToLog('MAIN', 'ERROR', 'Exception thrown in logResourceAccess: ' + err.message);
-    }
-}
-
-
-async function getPostgresConnectionObject()
-{
-    try
-    {
-        return pgp('postgres://admin:pass@192.168.0.121:5432/cjremmett');
-    }
-    catch(err)
-    {
-        console.log(err.message);
     }
 }
 
