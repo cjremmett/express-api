@@ -182,7 +182,18 @@ async function appendToLog(category, level, message)
 {
     try
     {
-        pgpdb.db.query('INSERT INTO express_logs (timestamp, category, level, message) VALUES ($1, $2, $3, $4)', [getUTCTimestampString(), category, level, message]);
+        const logRecord = {
+            timestamp: getUTCTimestampString(),
+            category: category,
+            level: level,
+            message: message
+        }
+        
+        await sql`
+        insert into express_logs ${
+            sql(logRecord, 'timestamp', 'category', 'level', 'message')
+        }
+        `
     }
     catch(err)
     {
@@ -195,7 +206,17 @@ async function logResourceAccess(url, ipAddress)
 {
     try
     {
-        pgpdb.db.query('INSERT INTO resource_access_logs (timestamp, location, ip_address) VALUES ($1, $2, $3)', [getUTCTimestampString(), url, ipAddress]);
+        const resourceAccessRecord = {
+            timestamp: getUTCTimestampString(),
+            location: url,
+            ip_address: ipAddress
+        }
+        
+        await sql`
+        insert into resource_access_logs ${
+            sql(resourceAccessRecord, 'timestamp', 'location', 'ip_address')
+        }
+        `
     }
     catch(err)
     {
