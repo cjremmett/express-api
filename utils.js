@@ -1,8 +1,8 @@
-const express = require('express');
+import express from 'express';
 const router = express.Router();
 
-const redis = require('./redistools');
-import sql from './postgresTools.js'
+import { getSecretsJson } from './redistools.js';
+import sql from './postgresTools.js';
 
 
 async function isAuthorized(req)
@@ -27,7 +27,7 @@ async function isAuthorized(req)
             return false;
         }
     
-        let secretsJson = await redis.getSecretsJson();
+        let secretsJson = await getSecretsJson();
         if(secretsJson.secrets.express.username === username && secretsJson.secrets.express.password === password)
         {
             return true;
@@ -230,5 +230,5 @@ function sleep(ms)
     return new Promise(resolve => setTimeout(resolve, ms));
 }
 
-module.exports = { router:router, getUTCTimestampString:getUTCTimestampString, appendToLog:appendToLog, logResourceAccess:logResourceAccess, sleep:sleep };
+export { router, getUTCTimestampString, appendToLog, logResourceAccess, sleep };
 

@@ -1,5 +1,4 @@
-const redis = require('redis');
-
+import redis from 'redis';
 
 async function getRedisCursor()
 {
@@ -10,7 +9,6 @@ async function getRedisCursor()
     return client;
 }
 
-
 async function getSecretsJson()
 {
     let redisCursor = await getRedisCursor();
@@ -19,5 +17,4 @@ async function getSecretsJson()
     return secretsJson;
 }
 
-module.exports = { getRedisCursor:getRedisCursor, getSecretsJson:getSecretsJson };
-
+export { getSecretsJson };
