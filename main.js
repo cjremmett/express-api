@@ -3,6 +3,7 @@ const app = express();
 const port = 3000;
 
 import { router, logResourceAccess, appendToLog } from './utils.js';
+import { photographyRouter } from './photography.js';
 
 // Boilerplate code that automatically converts request bodies to JSON
 // See https://masteringjs.io/tutorials/express/body
@@ -15,6 +16,7 @@ app.use((req, res, next) => {
 });
 
 app.use('/api', router);
+app.use('/api/photography', photographyRouter);
 
 app.listen(port, () => {
     app.set('trust proxy', true);
