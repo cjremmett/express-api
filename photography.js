@@ -95,15 +95,15 @@ photographyRouter.put('/reload-tables', async (req, res) => {
         {
             if(db.name === 'photography')
             {
-                client.db(db.name).collection('photos').drop();
-                client.db(db.name).collection('tags').drop();
+                await client.db(db.name).collection('photos').drop();
+                await client.db(db.name).collection('tags').drop();
             }
         }
 
         // Create photography database and photos and tags collections
         let photographyDatabase = client.db("photography");
-        photographyDatabase.createCollection("photos");
-        photographyDatabase.createCollection("tags");
+        await photographyDatabase.createCollection("photos");
+        await photographyDatabase.createCollection("tags");
 
         await client.close();
 
