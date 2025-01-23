@@ -1,21 +1,21 @@
 import express from 'express';
 const photographyRouter = express.Router();
 
-//import { readFile } from 'fs/promises';
-//import * as fs from 'fs';
-//import * as path from 'path';
+import { readFile } from 'fs/promises';
+import * as fs from 'fs';
+import * as path from 'path';
 
-// import { MongoClient, ServerApiVersion } from "mongodb";
-// const uri = "mongodb://localhost:27017";
-// const client = new MongoClient(uri,  
-// {
-//     serverApi: 
-//     {
-//         version: ServerApiVersion.v1,
-//         strict: true,
-//         deprecationErrors: true,
-//     }
-// });
+import { MongoClient, ServerApiVersion } from "mongodb";
+const uri = "mongodb://localhost:27017";
+const client = new MongoClient(uri,  
+{
+    serverApi: 
+    {
+        version: ServerApiVersion.v1,
+        strict: true,
+        deprecationErrors: true,
+    }
+});
 
 const photographyDirectory = "/srv/http/photography";
 
