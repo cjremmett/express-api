@@ -16,6 +16,8 @@ const photographyDirectory = "/srv/http/photography";
 async function processFileForReloadingTables(path)
 {
     // Check if the file is JSON
+    appendToLog('PHOTOGRAPHY', 'DEBUG', path);
+    appendToLog('PHOTOGRAPHY', 'DEBUG', toUpperCase(path.substring(path.length - 5)));
     if(path.length > 5 && toUpperCase(path.substring(path.length - 5)) === '.JSON')
     {
         try
