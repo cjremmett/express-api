@@ -143,7 +143,13 @@ photographyRouter.get('/get-all-tags', async (req, res) => {
     {
         appendToLog('PHOTOGRAPHY', 'TRACE', 'User at ' + req.ip + ' requested all tags.');
 
-        res.json({"helo": "world"});
+        const client = new MongoClient(uri);
+        const photographyDatabase = client.db("photography");
+        const photographyCollection = photographyDatabase.collection("tags");
+        let tags = await photographyCollection.findOne();
+        await client.close();
+
+        res.json(tags);
         res.status(200);
         res.send();
     }
