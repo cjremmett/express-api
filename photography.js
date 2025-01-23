@@ -1,6 +1,8 @@
 import express from 'express';
 const photographyRouter = express.Router();
 
+import { appendToLog } from './utils.js';
+
 import { readFile } from 'fs/promises';
 import * as fs from 'fs';
 import * as path from 'path';
@@ -84,11 +86,13 @@ photographyRouter.put('/reload-tables', async (req, res) => {
     try
     {
         await processFolderForReloadingTables(photographyDirectory);
+        appendToLog('PHOTOGRAPHY', 'TRACE', 'Reloaded photography MongoDB tables successfully.');
         res.status(200);
         res.send();
     }
     catch(err)
     {
+        appendToLog('PHOTOGRAPHY', 'ERROR', 'Failed to reload photography MongoDB tables.');
         res.status(500);
         res.send();
     }
