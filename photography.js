@@ -88,7 +88,7 @@ photographyRouter.put('/reload-tables', async (req, res) => {
     {
         appendToLog('PHOTOGRAPHY', 'TRACE', 'Triggered reload for MongoDB photography tables.');
 
-        // Drop photography database if it exists
+        // Clear the photos and tags collections
         const client = new MongoClient(uri);
         const admin = client.db().admin();
         const dbInfo = await admin.listDatabases();
@@ -96,7 +96,8 @@ photographyRouter.put('/reload-tables', async (req, res) => {
         {
             if(db.name === 'photography')
             {
-                client.db(db.name).dropDatabase();
+                client.db(db.name).collection('photos').remove();
+                client.db(db.name).collection('tags').remove();
             }
         }
 
