@@ -137,5 +137,24 @@ photographyRouter.put('/reload-tables', async (req, res) => {
     }
 });
 
+photographyRouter.get('/get-all-tags', async (req, res) => {
+    
+    try
+    {
+        appendToLog('PHOTOGRAPHY', 'TRACE', 'User at ' + req.ip + ' requested all tags.');
+
+        res.json({"helo": "world"});
+        res.status(200);
+        res.send();
+    }
+    catch(err)
+    {
+        appendToLog('PHOTOGRAPHY', 'ERROR', 'Exception thrown getting all tags: ' + err.message);
+        res.status(500);
+        res.send();
+    }
+});
+
+
 export { photographyRouter };
 
