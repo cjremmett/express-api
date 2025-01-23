@@ -83,7 +83,7 @@ photographyRouter.put('/reload-tables', async (req, res) => {
     
     try
     {
-        await processFileForReloadingTables(photographyDirectory);
+        await processFolderForReloadingTables(photographyDirectory);
         res.status(200);
         res.send();
     }
