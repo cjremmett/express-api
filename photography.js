@@ -21,7 +21,7 @@ async function processFileForReloadingTables(path)
         if(path.substring(path.length - 5))
         {
             let metadata = JSON.parse(await readFile(path, "utf8"));
-            appendToLog('PHOTOGRAPHY', 'DEBUG', 'Writing metadata into photos collection:\n\n' + metadata);
+            appendToLog('PHOTOGRAPHY', 'DEBUG', 'Writing metadata into photos collection:\n\n' + toString(metadata));
 
             const client = new MongoClient(uri);
             const photographyDatabase = client.db("photography");
@@ -89,10 +89,10 @@ photographyRouter.put('/reload-tables', async (req, res) => {
         appendToLog('PHOTOGRAPHY', 'TRACE', 'Triggered reload for MongoDB photography tables.');
 
         // Clear the photos and tags collections
-        const client = new MongoClient(uri);
-        const admin = client.db().admin();
-        const dbInfo = await admin.listDatabases();
-        for(const db of dbInfo.databases)
+        let client = new MongoClient(uri);
+        let admin = client.db().admin();
+        let dbInfo = await admin.listDatabases();
+        for(let db of dbInfo.databases)
         {
             if(db.name === 'photography')
             {
@@ -102,9 +102,11 @@ photographyRouter.put('/reload-tables', async (req, res) => {
         }
 
         // Create photography database and photos and tags collections
-        const photographyDatabase = client.db("photography");
+        let photographyDatabase = client.db("photography");
         photographyDatabase.createCollection("photos");
         photographyDatabase.createCollection("tags");
+
+        await client.close();
 
         await processFolderForReloadingTables(photographyDirectory);
         res.status(201);
@@ -115,17 +117,6 @@ photographyRouter.put('/reload-tables', async (req, res) => {
         appendToLog('PHOTOGRAPHY', 'ERROR', 'Exception thrown while reloading photography tables: ' + err.message);
         res.status(500);
         res.send();
-    }
-    finally
-    {
-        try
-        {
-            await client.close();
-        }
-        catch(err)
-        {
-            appendToLog('PHOTOGRAPHY', 'ERROR', 'Exception thrown in reload-tables when trying to close the connection: ' + err.message);
-        }
     }
 });
 
