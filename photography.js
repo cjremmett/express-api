@@ -125,6 +125,7 @@ photographyRouter.put('/reload-tables', async (req, res) => {
 
         await processFolderForReloadingTables(photographyDirectory);
         await updateTagsForReloadingTables();
+        tags = {};
         res.status(201);
         res.send();
     }
