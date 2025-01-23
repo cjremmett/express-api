@@ -13,6 +13,8 @@ import { MongoClient } from "mongodb";
 const uri = "mongodb://admin:admin@192.168.0.121:27017";
 const photographyDirectory = "/srv/http/photography";
 
+let tags = {};
+
 async function processFileForReloadingTables(path)
 {
     // Check if the file is JSON
@@ -21,6 +23,12 @@ async function processFileForReloadingTables(path)
         try
         {
             let metadata = JSON.parse(await readFile(path, "utf8"));
+
+            // Update the tags JSON
+            for(const tag of Object.keys(metadata['tags']))
+            {
+                tags[tag] = true;
+            }
     
             const client = new MongoClient(uri);
             const photographyDatabase = client.db("photography");
@@ -58,17 +66,34 @@ async function processFolderForReloadingTables(directory)
 
             if(stat.isFile())
             {
-                processFileForReloadingTables(fullPath);
+                await processFileForReloadingTables(fullPath);
             }
             else if(stat.isDirectory())
             {
-                processFolderForReloadingTables(fullPath);
+                await processFolderForReloadingTables(fullPath);
             }
         }
     }
     catch(err) 
     {
         appendToLog('PHOTOGRAPHY', 'ERROR', 'Exception thrown in processFolderForReloadingTables: ' + err.message);
+    }
+}
+
+async function updateTagsForReloadingTables()
+{
+    try
+    {
+        const client = new MongoClient(uri);
+        const photographyDatabase = client.db("photography");
+        const tagsCollection = photographyDatabase.collection("tags");
+        await tagsCollection.insertOne(tags);
+        await client.close();
+        appendToLog('PHOTOGRAPHY', 'TRACE', 'Inserted tags: ' + JSON.stringify(tags));
+    }
+    catch(err) 
+    {
+        appendToLog('PHOTOGRAPHY', 'ERROR', 'Exception thrown in updateTagsForReloadingTables: ' + err.message);
     }
 }
 
@@ -99,6 +124,7 @@ photographyRouter.put('/reload-tables', async (req, res) => {
         await client.close();
 
         await processFolderForReloadingTables(photographyDirectory);
+        await updateTagsForReloadingTables();
         res.status(201);
         res.send();
     }
