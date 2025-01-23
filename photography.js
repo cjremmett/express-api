@@ -60,7 +60,7 @@ async function processFolderForReloadingTables(directory)
         for(const file of files)
         {
             // Get the object full path
-            const fullPath = path.join(photographyDirectory, file);
+            const fullPath = path.join(directory, file);
 
             // Stat the file to see if we have a file or dir
             const stat = await fs.promises.stat(fullPath);
