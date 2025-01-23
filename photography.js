@@ -96,8 +96,8 @@ photographyRouter.put('/reload-tables', async (req, res) => {
         {
             if(db.name === 'photography')
             {
-                client.db(db.name).collection('photos').remove();
-                client.db(db.name).collection('tags').remove();
+                client.db(db.name).collection('photos').drop();
+                client.db(db.name).collection('tags').drop();
             }
         }
 
