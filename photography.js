@@ -30,6 +30,7 @@ async function processFileForReloadingTables(path)
         {
             let metadata = JSON.parse(await readFile(path, "utf8"));
     
+            client.connect();
             const photographyDatabase = client.db("photography");
             const photographyCollection = photographyDatabase.collection("photos");
             const query = { id: metadata['id'] };
@@ -44,7 +45,14 @@ async function processFileForReloadingTables(path)
     }
     finally
     {
-        await client.close();
+        try
+        {
+            await client.close();
+        }
+        catch(err)
+        {
+            appendToLog('PHOTOGRAPHY', 'ERROR', 'Exception thrown in processFileForReloadingTables when trying to close the connection: ' + err.message);
+        }
     }
 }
 
