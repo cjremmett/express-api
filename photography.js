@@ -7,17 +7,10 @@ import { readFile } from 'fs/promises';
 import * as fs from 'fs';
 import * as path from 'path';
 
+// Not port forwarded so creds can be in GitHub repo without issue
 import { MongoClient, ServerApiVersion } from "mongodb";
-const uri = "mongodb://localhost:27017";
-const client = new MongoClient(uri,  
-{
-    serverApi: 
-    {
-        version: ServerApiVersion.v1,
-        strict: true,
-        deprecationErrors: true,
-    }
-});
+const uri = "mongodb://admin:admin@192.168.0.121:27017";
+const client = new MongoClient(uri);
 
 const photographyDirectory = "/srv/http/photography";
 
@@ -30,7 +23,6 @@ async function processFileForReloadingTables(path)
         {
             let metadata = JSON.parse(await readFile(path, "utf8"));
     
-            client.connect();
             const photographyDatabase = client.db("photography");
             const photographyCollection = photographyDatabase.collection("photos");
             const query = { id: metadata['id'] };
