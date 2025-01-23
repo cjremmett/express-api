@@ -15,14 +15,13 @@ const photographyDirectory = "/srv/http/photography";
 
 async function processFileForReloadingTables(path)
 {
-    try
+    // Check if the file is JSON
+    if(path.length > 5 && toUpperCase(path.substring(path.length - 5)) === '.JSON')
     {
-        // Check if the file is JSON
-        if(path.substring(path.length - 5))
+        try
         {
             let metadata = JSON.parse(await readFile(path, "utf8"));
-            appendToLog('PHOTOGRAPHY', 'DEBUG', 'Writing metadata into photos collection:\n\n' + toString(metadata));
-
+    
             const client = new MongoClient(uri);
             const photographyDatabase = client.db("photography");
             const photographyCollection = photographyDatabase.collection("photos");
@@ -31,20 +30,20 @@ async function processFileForReloadingTables(path)
             const options = { upsert: true };
             photographyCollection.updateOne(query, update, options);
         }
-    }
-    catch(err) 
-    {
-        appendToLog('PHOTOGRAPHY', 'ERROR', 'Exception thrown in processFileForReloadingTables: ' + err.message);
-    }
-    finally
-    {
-        try
+        catch(err) 
         {
-            await client.close();
+            appendToLog('PHOTOGRAPHY', 'ERROR', 'Exception thrown in processFileForReloadingTables: ' + err.message);
         }
-        catch(err)
+        finally
         {
-            appendToLog('PHOTOGRAPHY', 'ERROR', 'Exception thrown in processFileForReloadingTables when trying to close the connection: ' + err.message);
+            try
+            {
+                await client.close();
+            }
+            catch(err)
+            {
+                appendToLog('PHOTOGRAPHY', 'ERROR', 'Exception thrown in processFileForReloadingTables when trying to close the connection: ' + err.message);
+            }
         }
     }
 }
