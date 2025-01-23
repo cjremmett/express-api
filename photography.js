@@ -147,6 +147,7 @@ photographyRouter.get('/get-all-tags', async (req, res) => {
         const photographyDatabase = client.db("photography");
         const photographyCollection = photographyDatabase.collection("tags");
         let tags = await photographyCollection.findOne();
+        delete tags['_id'];
         await client.close();
 
         res.json(tags);
