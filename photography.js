@@ -16,8 +16,6 @@ const photographyDirectory = "/srv/http/photography";
 async function processFileForReloadingTables(path)
 {
     // Check if the file is JSON
-    appendToLog('PHOTOGRAPHY', 'DEBUG', path);
-    appendToLog('PHOTOGRAPHY', 'DEBUG', path.substring(path.length - 5).toUpperCase());
     if(path.length > 5 && path.substring(path.length - 5).toUpperCase() === '.JSON')
     {
         try
@@ -30,22 +28,13 @@ async function processFileForReloadingTables(path)
             const query = { id: metadata['id'] };
             const update = { $set: metadata};
             const options = { upsert: true };
-            photographyCollection.updateOne(query, update, options);
+            await photographyCollection.updateOne(query, update, options);
+            await client.close();
+            appendToLog('PHOTOGRAPHY', 'TRACE', 'Upserted photo with id ' + metadata['id'] + '.');
         }
         catch(err) 
         {
             appendToLog('PHOTOGRAPHY', 'ERROR', 'Exception thrown in processFileForReloadingTables: ' + err.message);
-        }
-        finally
-        {
-            try
-            {
-                await client.close();
-            }
-            catch(err)
-            {
-                appendToLog('PHOTOGRAPHY', 'ERROR', 'Exception thrown in processFileForReloadingTables when trying to close the connection: ' + err.message);
-            }
         }
     }
 }
