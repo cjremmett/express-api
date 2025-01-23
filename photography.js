@@ -7,9 +7,10 @@ import { readFile } from 'fs/promises';
 import * as fs from 'fs';
 import * as path from 'path';
 
-// Not port forwarded so creds can be in GitHub repo without issue
 import { MongoClient } from "mongodb";
 
+// Not port forwarded so creds can be in GitHub repo without issue
+const uri = "mongodb://admin:admin@192.168.0.121:27017";
 const photographyDirectory = "/srv/http/photography";
 
 async function processFileForReloadingTables(path)
@@ -22,7 +23,6 @@ async function processFileForReloadingTables(path)
             let metadata = JSON.parse(await readFile(path, "utf8"));
             appendToLog('PHOTOGRAPHY', 'DEBUG', 'Writing metadata into phots collection:\n\n' + metadata);
 
-            const uri = "mongodb://admin:admin@192.168.0.121:27017";
             const client = new MongoClient(uri);
             const photographyDatabase = client.db("photography");
             const photographyCollection = photographyDatabase.collection("photos");
@@ -86,8 +86,20 @@ photographyRouter.put('/reload-tables', async (req, res) => {
     
     try
     {
+        // Drop photography database if it exists
+        const client = new MongoClient(uri);
+        let existingDatabases = client.listDatabaseNames();
+        for(const db in existingDatabases)
+        {
+            appendToLog('PHOTOGRAPHY', 'DEBUG', db);
+            if(db === 'photography')
+            {
+                client.db(db).dropDatabase();
+            }
+        }
+
         appendToLog('PHOTOGRAPHY', 'TRACE', 'Triggered reload for MongoDB photography tables.');
-        await processFolderForReloadingTables(photographyDirectory);
+        // await processFolderForReloadingTables(photographyDirectory);
         res.status(201);
         res.send();
     }
