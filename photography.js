@@ -32,7 +32,7 @@ async function processFileForReloadingTables(path)
     
             const photographyDatabase = client.db("photography");
             const photographyCollection = photographyDatabase.collection("photos");
-            const query = { id: metadata[id] };
+            const query = { id: metadata['id'] };
             const update = { $set: metadata};
             const options = { upsert: true };
             photographyCollection.updateOne(query, update, options);
@@ -85,14 +85,13 @@ photographyRouter.put('/reload-tables', async (req, res) => {
     
     try
     {
+        appendToLog('PHOTOGRAPHY', 'TRACE', 'Triggered reload for MongoDB photography tables.');
         await processFolderForReloadingTables(photographyDirectory);
-        appendToLog('PHOTOGRAPHY', 'TRACE', 'Reloaded photography MongoDB tables successfully.');
-        res.status(200);
+        res.status(201);
         res.send();
     }
     catch(err)
     {
-        appendToLog('PHOTOGRAPHY', 'ERROR', 'Failed to reload photography MongoDB tables.');
         res.status(500);
         res.send();
     }
