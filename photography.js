@@ -8,9 +8,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 
 // Not port forwarded so creds can be in GitHub repo without issue
-import { MongoClient, ServerApiVersion } from "mongodb";
-const uri = "mongodb://admin:admin@192.168.0.121:27017";
-const client = new MongoClient(uri);
+import { MongoClient } from "mongodb";
 
 const photographyDirectory = "/srv/http/photography";
 
@@ -22,7 +20,10 @@ async function processFileForReloadingTables(path)
         if(path.substring(path.length - 5))
         {
             let metadata = JSON.parse(await readFile(path, "utf8"));
-    
+            appendToLog('PHOTOGRAPHY', 'DEBUG', 'Writing metadata into phots collection:\n\n' + metadata);
+
+            const uri = "mongodb://admin:admin@192.168.0.121:27017";
+            const client = new MongoClient(uri);
             const photographyDatabase = client.db("photography");
             const photographyCollection = photographyDatabase.collection("photos");
             const query = { id: metadata['id'] };
