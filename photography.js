@@ -86,22 +86,26 @@ photographyRouter.put('/reload-tables', async (req, res) => {
     
     try
     {
+        appendToLog('PHOTOGRAPHY', 'TRACE', 'Triggered reload for MongoDB photography tables.');
+
         // Drop photography database if it exists
         const client = new MongoClient(uri);
         const admin = client.db().admin();
         const dbInfo = await admin.listDatabases();
-        appendToLog('PHOTOGRAPHY', 'TRACE', dbInfo);
         for(const db of dbInfo.databases)
         {
-            appendToLog('PHOTOGRAPHY', 'DEBUG', db.name);
             if(db.name === 'photography')
             {
                 client.db(db.name).dropDatabase();
             }
         }
 
-        appendToLog('PHOTOGRAPHY', 'TRACE', 'Triggered reload for MongoDB photography tables.');
-        // await processFolderForReloadingTables(photographyDirectory);
+        // Create photography database and photos and tags collections
+        const photographyDatabase = client.db("photography");
+        photographyDatabase.createCollection("photos");
+        photographyDatabase.createCollection("tags");
+
+        await processFolderForReloadingTables(photographyDirectory);
         res.status(201);
         res.send();
     }
@@ -110,6 +114,17 @@ photographyRouter.put('/reload-tables', async (req, res) => {
         appendToLog('PHOTOGRAPHY', 'ERROR', 'Exception thrown while reloading photography tables: ' + err.message);
         res.status(500);
         res.send();
+    }
+    finally
+    {
+        try
+        {
+            await client.close();
+        }
+        catch(err)
+        {
+            appendToLog('PHOTOGRAPHY', 'ERROR', 'Exception thrown in reload-tables when trying to close the connection: ' + err.message);
+        }
     }
 });
 
