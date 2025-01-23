@@ -2,8 +2,8 @@ import { express } from 'express';
 const photographyRouter = express.Router();
 
 import { readFile } from 'fs/promises';
-import * as fs from 'fs';
-import * as path from 'path';
+//import * as fs from 'fs';
+//import * as path from 'path';
 
 import { MongoClient, ServerApiVersion } from "mongodb";
 const uri = "mongodb://localhost:27017";
