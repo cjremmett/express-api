@@ -105,6 +105,7 @@ photographyRouter.put('/reload-tables', async (req, res) => {
     }
     catch(err)
     {
+        appendToLog('PHOTOGRAPHY', 'ERROR', 'Exception thrown while reloading photography tables: ' + err.message);
         res.status(500);
         res.send();
     }
