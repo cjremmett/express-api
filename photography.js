@@ -88,13 +88,15 @@ photographyRouter.put('/reload-tables', async (req, res) => {
     {
         // Drop photography database if it exists
         const client = new MongoClient(uri);
-        let existingDatabases = client.listDatabaseNames();
-        for(const db in existingDatabases)
+        const admin = client.db().admin();
+        const dbInfo = await admin.listDatabases();
+        appendToLog('PHOTOGRAPHY', 'TRACE', dbInfo);
+        for(const db of dbInfo.databases)
         {
-            appendToLog('PHOTOGRAPHY', 'DEBUG', db);
-            if(db === 'photography')
+            appendToLog('PHOTOGRAPHY', 'DEBUG', db.name);
+            if(db.name === 'photography')
             {
-                client.db(db).dropDatabase();
+                client.db(db.name).dropDatabase();
             }
         }
 
