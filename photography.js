@@ -21,7 +21,7 @@ async function processFileForReloadingTables(path)
         if(path.substring(path.length - 5))
         {
             let metadata = JSON.parse(await readFile(path, "utf8"));
-            appendToLog('PHOTOGRAPHY', 'DEBUG', 'Writing metadata into phots collection:\n\n' + metadata);
+            appendToLog('PHOTOGRAPHY', 'DEBUG', 'Writing metadata into photos collection:\n\n' + metadata);
 
             const client = new MongoClient(uri);
             const photographyDatabase = client.db("photography");
