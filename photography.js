@@ -170,7 +170,9 @@ async function getMongoQueryFromUserTagQuery(tagQuery)
         return {};
     }
 
-    let userRequestedTags = tagQuery.split('+');
+    // For whatever reason, express turns '+' symbols into ' ' when getting the query
+    // The endpoint should be called with a query like ?tags=hello+world, which comes out as hello world
+    let userRequestedTags = tagQuery.split(' ');
 
     let query = {};
     for(const tag of userRequestedTags)
@@ -200,6 +202,7 @@ photographyRouter.get('/get-photos', async (req, res) => {
         //let photos = await photographyCollection.;
         //delete tags['_id'];
 
+        appendToLog('PHOTOGRAPHY', 'TRACE', query.toString());
         res.json(query);
         res.status(200);
         res.send();
