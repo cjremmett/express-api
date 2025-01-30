@@ -162,6 +162,51 @@ photographyRouter.get('/get-all-tags', async (req, res) => {
     }
 });
 
+async function getMongoQueryFromUserTagQuery(tagQuery)
+{
+    let userRequestedTags = [];
+    if(tagQuery == null || tagQuery === '')
+    {
+        userRequestedTags = tagQuery.split('+');
+    }
+
+    let query = {};
+    for(const tag of userRequestedTags)
+    {
+        query[tags[tag]] = true;
+    }
+    return query;
+}
+
+photographyRouter.get('/get-photos', async (req, res) => {
+    
+    try
+    {
+        let tagQuery = req.query.tags;
+        appendToLog('PHOTOGRAPHY', 'TRACE', 'User at ' + req.ip + ' requested photos with tags: ' + tagQuery);
+
+        const client = new MongoClient(uri);
+        const photographyDatabase = client.db("photography");
+        const photographyCollection = photographyDatabase.collection("photos");
+        await client.close();
+
+        let query = getMongoQueryFromUserTagQuery(tagQuery);
+        
+        //let photos = await photographyCollection.;
+        //delete tags['_id'];
+
+        res.json(query);
+        res.status(200);
+        res.send();
+    }
+    catch(err)
+    {
+        appendToLog('PHOTOGRAPHY', 'ERROR', 'Exception thrown getting photos: ' + err.message);
+        res.status(500);
+        res.send();
+    }
+});
+
 
 export { photographyRouter };
 
