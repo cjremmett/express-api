@@ -164,18 +164,21 @@ photographyRouter.get('/get-all-tags', async (req, res) => {
 
 async function getMongoQueryFromUserTagQuery(tagQuery)
 {
-    let userRequestedTags = [];
-    if(tagQuery != null && tagQuery !== '')
+    // If there are no tags submitted, return an empty query, which causes MongoDB to return all records in the collection.
+    if(tagQuery == null || tagQuery === '')
     {
-        userRequestedTags = tagQuery.split('+');
+        return {};
     }
+
+    let userRequestedTags = tagQuery.split('+');
 
     let query = {};
     for(const tag of userRequestedTags)
     {
-        appendToLog('PHOTOGRAPHY', 'TRACE', 'Adding tag ' + tag + ' to query. Length of userRequestedTags: ' + userRequestedTags.length);
-        query[tags[tag]] = true;
+        let tagKey = 'tags.' + tag;
+        query[tagKey] = true;
     }
+    
     return query;
 }
 
