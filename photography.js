@@ -196,11 +196,11 @@ photographyRouter.get('/get-photos', async (req, res) => {
         const client = new MongoClient(uri);
         const photographyDatabase = client.db("photography");
         const photographyCollection = photographyDatabase.collection("photos");
-        let photos = await photographyCollection.find(query);
+        let photos = await photographyCollection.find(query).toArray();
         //delete tags['_id'];
         await client.close();
 
-        appendToLog('PHOTOGRAPHY', 'TRACE', query.toString());
+        appendToLog('PHOTOGRAPHY', 'TRACE', JSON.stringify(query));
         res.json(photos);
         res.status(200);
         res.send();
