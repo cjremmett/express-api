@@ -197,7 +197,7 @@ photographyRouter.get('/get-photos', async (req, res) => {
         const photographyCollection = photographyDatabase.collection("photos");
         await client.close();
 
-        let query = getMongoQueryFromUserTagQuery(tagQuery);
+        let query = await getMongoQueryFromUserTagQuery(tagQuery);
         
         //let photos = await photographyCollection.;
         //delete tags['_id'];
