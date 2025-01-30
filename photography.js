@@ -177,7 +177,6 @@ async function getMongoQueryFromUserTagQuery(tagQuery)
     let query = {};
     for(const tag of userRequestedTags)
     {
-        appendToLog('PHOTOGRAPHY', 'TRACE', 'Added ' + tag + ' to query. Length of userRequestedTags: ' + userRequestedTags.length);
         let tagKey = 'tags.' + tag;
         query[tagKey] = true;
     }
@@ -192,18 +191,17 @@ photographyRouter.get('/get-photos', async (req, res) => {
         let tagQuery = req.query.tags;
         appendToLog('PHOTOGRAPHY', 'TRACE', 'User at ' + req.ip + ' requested photos with tags: ' + tagQuery);
 
+        let query = await getMongoQueryFromUserTagQuery(tagQuery);
+        
         const client = new MongoClient(uri);
         const photographyDatabase = client.db("photography");
         const photographyCollection = photographyDatabase.collection("photos");
+        let photos = await photographyCollection.find(query);
+        //delete tags['_id'];
         await client.close();
 
-        let query = await getMongoQueryFromUserTagQuery(tagQuery);
-        
-        //let photos = await photographyCollection.;
-        //delete tags['_id'];
-
         appendToLog('PHOTOGRAPHY', 'TRACE', query.toString());
-        res.json(query);
+        res.json(photos);
         res.status(200);
         res.send();
     }
