@@ -11,7 +11,7 @@ import { MongoClient } from "mongodb";
 
 // Not port forwarded so creds can be in GitHub repo without issue
 const uri = "mongodb://admin:admin@192.168.0.121:27017";
-const photographyDirectory = "/srv/http/photography";
+const photographyDirectory = "/srv/http/images/photography";
 
 let tags = {};
 
