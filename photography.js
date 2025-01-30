@@ -165,7 +165,7 @@ photographyRouter.get('/get-all-tags', async (req, res) => {
 async function getMongoQueryFromUserTagQuery(tagQuery)
 {
     let userRequestedTags = [];
-    if(tagQuery != null && tagQuery === '')
+    if(tagQuery != null && tagQuery !== '')
     {
         userRequestedTags = tagQuery.split('+');
     }
