@@ -175,6 +175,7 @@ async function getMongoQueryFromUserTagQuery(tagQuery)
     let query = {};
     for(const tag of userRequestedTags)
     {
+        appendToLog('PHOTOGRAPHY', 'TRACE', 'Added ' + tag + ' to query. Length of userRequestedTags: ' + userRequestedTags.length);
         let tagKey = 'tags.' + tag;
         query[tagKey] = true;
     }
