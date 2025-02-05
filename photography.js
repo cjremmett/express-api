@@ -196,7 +196,7 @@ photographyRouter.get('/get-photos', async (req, res) => {
         const client = new MongoClient(uri);
         const photographyDatabase = client.db("photography");
         const photographyCollection = photographyDatabase.collection("photos");
-        let photos = await photographyCollection.find(query).toArray();
+        let photos = await photographyCollection.find(query).project({ _id: 0, id: 1, big_thumb: 1, small_thumb: 1 }).toArray();
         await client.close();
 
         res.json(photos);
