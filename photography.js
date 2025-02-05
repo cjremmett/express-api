@@ -211,6 +211,41 @@ photographyRouter.get('/get-photos', async (req, res) => {
     }
 });
 
+function getMongoQueryFromUserPhotoId(photoId)
+{
+    let query = { 'id': photoId };
+    return query;
+}
+
+photographyRouter.get('/get-photo-data/:photoId', async (req, res) => {
+    
+    try
+    {
+        let photoId = req.params['photoId'];
+        appendToLog('PHOTOGRAPHY', 'TRACE', 'User at ' + req.ip + ' requested full data for photo with ID ' + photoId + '.');
+
+        let query = getMongoQueryFromUserPhotoId(photoId);
+        
+        const client = new MongoClient(uri);
+        const photographyDatabase = client.db("photography");
+        const photographyCollection = photographyDatabase.collection("photos");
+        let photoData = await photographyCollection.findOne(query).project({
+            _id: 0, camera: 1, fNumber: 1, focalLength: 1, full: 1, iso:1, lens: 1, raw: 1, shutterSpeed: 1, uploadTimestamp: 1
+        }).toArray();
+        await client.close();
+
+        res.json(photoData);
+        res.status(200);
+        res.send();
+    }
+    catch(err)
+    {
+        appendToLog('PHOTOGRAPHY', 'ERROR', 'Exception thrown getting photo data: ' + err.message);
+        res.status(500);
+        res.send();
+    }
+});
+
 
 export { photographyRouter };
 
