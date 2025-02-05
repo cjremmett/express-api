@@ -229,9 +229,7 @@ photographyRouter.get('/get-photo-data/:photoId', async (req, res) => {
         const client = new MongoClient(uri);
         const photographyDatabase = client.db("photography");
         const photographyCollection = photographyDatabase.collection("photos");
-        let photoData = await photographyCollection.findOne(query).project({
-            _id: 0, camera: 1, fNumber: 1, focalLength: 1, full: 1, iso:1, lens: 1, raw: 1, shutterSpeed: 1, uploadTimestamp: 1
-        }).toArray();
+        let photoData = await photographyCollection.findOne(query).project({ _id: 0, camera: 1, fNumber: 1, focalLength: 1, full: 1, iso:1, lens: 1, raw: 1, shutterSpeed: 1, uploadTimestamp: 1 }).toArray();
         await client.close();
 
         res.json(photoData);
