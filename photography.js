@@ -172,7 +172,7 @@ function getMongoQueryFromUserTagQuery(tagQuery)
 
     // For whatever reason, express turns '+' symbols into ' ' when getting the query
     // The endpoint should be called with a query like ?tags=hello+world, which comes out as hello world
-    let userRequestedTags = tagQuery.split(' ');
+    let userRequestedTags = tagQuery.trim().split(' ');
 
     let query = {};
     for(const tag of userRequestedTags)
