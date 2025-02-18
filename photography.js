@@ -9,11 +9,19 @@ import * as path from 'path';
 
 import { MongoClient } from "mongodb";
 
+import { v4 as uuidv4 } from 'uuid';
+
 // Not port forwarded so creds can be in GitHub repo without issue
 const uri = "mongodb://admin:admin@192.168.0.121:27017";
 const photographyDirectory = "/srv/http/images/photography";
 
 let tags = {};
+
+async function populateMetadataTagsForPhoto(metadataJson)
+{
+    metadataJson['id'] = uuidv4(); // ⇨ '9b1deb4d-3b7d-4bad-9bdd-2b0d7b3dcb6d'
+    
+}
 
 async function processFileForReloadingTables(path)
 {
