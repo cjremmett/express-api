@@ -62,12 +62,7 @@ photographyRouter.post('/create-photo', async (req, res) => {
     {
         let authToken = req.header('token');
         let secrets = await getSecretsJson();
-        if(authToken !== secrets['secrets']['photography_tools']['auth_token'])
-        {
-            res.status(401);
-            res.send();
-        }
-        else
+        if(authToken === secrets['secrets']['photography_tools']['auth_token'])
         {
             // Pass something formatted like { "wildlife": true, "bird": true}
             let tags = req.body;
@@ -76,6 +71,11 @@ photographyRouter.post('/create-photo', async (req, res) => {
             let uuid = await createNewFolderWithMetadata(tags);
             res.json({ "uuid": uuid});
             res.status(201);
+            res.send();
+        }
+        else
+        {
+            res.status(401);
             res.send();
         }
     }
