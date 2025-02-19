@@ -36,7 +36,7 @@ async function populateMetadataTagsForPhoto(metadataJson)
     }
     catch (error)
     {
-        appendToLog('PHOTOGRAPHY', 'ERROR', 'Exception thrown in populateMetadataTagsForPhoto: ' + err.message);
+        appendToLog('PHOTOGRAPHY', 'ERROR', 'Exception thrown in populateMetadataTagsForPhoto: ' + error.message);
     }
 }
 
