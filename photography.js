@@ -59,6 +59,8 @@ async function processFileForReloadingTables(path)
                 tags[tag] = true;
             }
 
+            appendToLog('PHOTOGRAPHY', 'DEBUG', 'Tags is now: ' + JSON.stringify(tags));
+
             await populateMetadataJsonWithExifFields(metadata);
             fs.writeFile(path, JSON.stringify(metadata), (err) => {
                 if (err)
