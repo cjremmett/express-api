@@ -27,15 +27,18 @@ async function createNewFolderWithMetadata(tags)
         let uuid = uuidv4(); // ⇨ '9b1deb4d-3b7d-4bad-9bdd-2b0d7b3dcb6d'
         const newDirectory = photographyDirectory + '/' + uuid;
         
-        if (!fs.existsSync(newDirectory)) 
-        {
-            fs.mkdirSync(newDirectory);
-        }
+        fs.mkdir(newDirectory);
+        fs.chown(newDirectory, 'cjr', 'cjr', (error) => { 
+            if (error) 
+            {
+                appendToLog('PHOTOGRAPHY', 'ERROR', 'Failed to chown new folder at ' + newDirectory + '\nError message: ' + error.message);
+            }             
+        }); 
 
         let metadataJson = {};
         metadataJson['tags'] = tags;
         metadataJson['id'] = uuid;
-        metadataJson['uploadTimestamp'] = Math.floor(Date.now() / 1000);
+        metadataJson['uploadTimestamp'] = Math.floor(Date.now());
 
         const metadataFilePath = newDirectory + '/metadata.json';
         fs.writeFile(metadataFilePath, JSON.stringify(metadataJson), (err) => {
