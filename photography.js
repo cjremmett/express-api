@@ -2,7 +2,7 @@ import express from 'express';
 const photographyRouter = express.Router();
 
 import { appendToLog } from './utils.js';
-import { getSecretsJson } from './redistools.js';
+import { exiftool } from "exiftool-vendored";
 
 import { readFile } from 'fs/promises';
 import * as fs from 'fs';
@@ -13,7 +13,6 @@ import { MongoClient } from "mongodb";
 // Not port forwarded so creds can be in GitHub repo without issue
 const uri = "mongodb://admin:admin@192.168.0.121:27017";
 const photographyDirectory = "/srv/http/images/photography";
-const exifEndpoint = "https://cjremmett.com/flask/photography-tools/get-exif";
 
 let tags = {};
 
@@ -21,23 +20,18 @@ async function getExifDataForPhoto(metadataJson)
 {
     try 
     {
-        // Point PIL to the full image (which is PNG) since raw files are not supported, even for EXIF extraction.
-        let imageFullPath = photographyDirectory + '/' + metadataJson['id'] + '/' + metadataJson['full'];
+        let imageFullPath = photographyDirectory + '/' + metadataJson['id'] + '/' + metadataJson['raw'];
 
-        appendToLog('PHOTOGRAPHY', 'TRACE', 'Making API call to get EXIF data from image file located at: ' + imageFullPath);
-        let secrets = await getSecretsJson();
-        let apiToken = secrets['secrets']['photography_tools']['api_token'];
-        const response = await fetch(exifEndpoint, {
-            method: 'GET',
-            headers: {
-                'token': apiToken,
-                'imagePath': imageFullPath
-            }
-        });
-        //jsonBody = await response.json();
-        let jsonText = await response.text();
-        appendToLog('PHOTOGRAPHY', 'TRACE', jsonText);
-        return {};
+        appendToLog('PHOTOGRAPHY', 'TRACE', 'Extracting EXIF data from image file located at: ' + imageFullPath);
+        try
+        {
+            const exifData = await exiftool.read(imageFullPath);
+            return exifData;
+        }
+        finally
+        {
+            // await exiftool.end();
+        }
     }
     catch(err) 
     {
