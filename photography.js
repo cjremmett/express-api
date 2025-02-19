@@ -19,33 +19,49 @@ let tags = {};
 
 async function getExifDataForPhoto(metadataJson)
 {
-    // Point PIL to the full image (which is PNG) since raw files are not supported, even for EXIF extraction.
-    let imageFullPath = photographyDirectory + '/' + metadataJson['id'] + '/' + metadataJson['full'];
-    
-    appendToLog('PHOTOGRAPHY', 'TRACE', 'Making API call to get EXIF data from image file located at: ' + imageFullPath);
-    let secrets = await getSecretsJson();
-    let apiToken = secrets['secrets']['photography_tools']['api_token'];
-    const response = await fetch(exifEndpoint, {
-        method: 'GET',
-        headers: {
-            'token': apiToken,
-            'imagePath': imageFullPath
-        }
-    });
-    appendToLog('PHOTOGRAPHY', 'TRACE', JSON.stringify(response.json()));
-    return response.json();
+    try 
+    {
+        // Point PIL to the full image (which is PNG) since raw files are not supported, even for EXIF extraction.
+        let imageFullPath = photographyDirectory + '/' + metadataJson['id'] + '/' + metadataJson['full'];
+
+        appendToLog('PHOTOGRAPHY', 'TRACE', 'Making API call to get EXIF data from image file located at: ' + imageFullPath);
+        let secrets = await getSecretsJson();
+        let apiToken = secrets['secrets']['photography_tools']['api_token'];
+        const response = await fetch(exifEndpoint, {
+            method: 'GET',
+            headers: {
+                'token': apiToken,
+                'imagePath': imageFullPath
+            }
+        });
+        jsonBody = await response.json();
+        jsonText = await response.text();
+        appendToLog('PHOTOGRAPHY', 'TRACE', jsonText);
+        return jsonBody;
+    }
+    catch(err) 
+    {
+        appendToLog('PHOTOGRAPHY', 'ERROR', 'Exception thrown in getExifDataForPhoto: ' + err.message);
+    } 
 }
 
 async function populateMetadataJsonWithExifFields(metadataJson)
 {
-    let exifData = await getExifDataForPhoto(metadataJson);
-    metadataJson['camera'] = exifData['Make'] + ' ' + exifData['Model'];
-    metadataJson['lens'] = exifData['LensSpec'];
-    metadataJson['focalLength'] = exifData['FocalLength'].split('.')[0] + ' mm';
-    metadataJson['fNumber'] = 'f/' + exifData['FNumber'];
-    metadataJson['shutterSpeed'] = exifData['ShutterSpeed'];
-    metadataJson['iso'] = exifData['ISO'];
-    return metadataJson;
+    try 
+    {
+        let exifData = await getExifDataForPhoto(metadataJson);
+        metadataJson['camera'] = exifData['Make'] + ' ' + exifData['Model'];
+        metadataJson['lens'] = exifData['LensSpec'];
+        metadataJson['focalLength'] = exifData['FocalLength'].split('.')[0] + ' mm';
+        metadataJson['fNumber'] = 'f/' + exifData['FNumber'];
+        metadataJson['shutterSpeed'] = exifData['ShutterSpeed'];
+        metadataJson['iso'] = exifData['ISO'];
+        return metadataJson;
+    }
+    catch(err) 
+    {
+        appendToLog('PHOTOGRAPHY', 'ERROR', 'Exception thrown in populateMetadataJsonWithExifFields: ' + err.message);
+    } 
 }
 
 async function processFileForReloadingTables(path)
