@@ -12,7 +12,6 @@ import * as path from 'path';
 import { v4 as uuidv4 } from 'uuid';
 
 import { MongoClient } from "mongodb";
-import { create } from 'domain';
 
 // Not port forwarded so creds can be in GitHub repo without issue
 const uri = "mongodb://admin:admin@192.168.0.121:27017";
@@ -22,17 +21,17 @@ let tags = {};
 
 async function createNewFolderWithMetadata(tags)
 {
-    try 
+    try
     {
         let uuid = uuidv4(); // ⇨ '9b1deb4d-3b7d-4bad-9bdd-2b0d7b3dcb6d'
         const newDirectory = photographyDirectory + '/' + uuid;
         
         await fs.promises.mkdir(newDirectory);
-        await fs.promises.chown(newDirectory, 1000, 1000, (error) => { 
-            if (error) 
+        await fs.promises.chown(newDirectory, 1000, 1000, (error) => {
+            if (error)
             {
                 appendToLog('PHOTOGRAPHY', 'ERROR', 'Failed to chown new folder at ' + newDirectory + '\nError message: ' + error.message);
-            }             
+            }
         }); 
 
         let metadataJson = {};
@@ -85,6 +84,36 @@ photographyRouter.post('/create-photo', async (req, res) => {
     catch(err)
     {
         appendToLog('PHOTOGRAPHY', 'ERROR', 'Exception thrown getting photos: ' + err.message);
+        res.status(500);
+        res.send();
+    }
+});
+
+photographyRouter.put('/replace-photo/:photoId', async (req, res) => {
+    
+    try
+    {
+        let authToken = req.header('token');
+        let secrets = await getSecretsJson();
+        if(authToken === secrets['secrets']['photography_tools']['api_token'])
+        {
+            let photoId = req.params['photoId'];
+            let photoTypeKey = req.query.type;
+            appendToLog('PHOTOGRAPHY', 'TRACE', 'User at ' + req.ip + ' replaced a photo.');
+
+            
+            res.status(201);
+            res.send();
+        }
+        else
+        {
+            res.status(401);
+            res.send();
+        }
+    }
+    catch(err)
+    {
+        appendToLog('PHOTOGRAPHY', 'ERROR', 'Exception thrown replacing photo: ' + err.message);
         res.status(500);
         res.send();
     }
