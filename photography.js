@@ -2,6 +2,7 @@ import express from 'express';
 const photographyRouter = express.Router();
 
 import { appendToLog } from './utils.js';
+import { getSecretsJson } from './redistools.js';
 
 import { readFile } from 'fs/promises';
 import * as fs from 'fs';
@@ -9,27 +10,28 @@ import * as path from 'path';
 
 import { MongoClient } from "mongodb";
 
-import { exiftool } from "exiftool-vendored";
-
 // Not port forwarded so creds can be in GitHub repo without issue
 const uri = "mongodb://admin:admin@192.168.0.121:27017";
 const photographyDirectory = "/srv/http/images/photography";
+const exifEndpoint = "https://cjremmett.com/flask/photography-tools/get-exif";
 
 let tags = {};
 
 async function getExifDataForPhoto(metadataJson)
 {
     let imageFullPath = photographyDirectory + '/' + metadataJson['id'] + '/' + metadataJson['raw'];
-    appendToLog('PHOTOGRAPHY', 'TRACE', 'Extracting EXIF data from image file located at: ' + imageFullPath);
-    try
-    {
-        const exifData = await exiftool.read(imageFullPath);
-        return exifData;
-    }
-    finally
-    {
-        await exiftool.end();
-    }
+    appendToLog('PHOTOGRAPHY', 'TRACE', 'Making API call to get EXIF data from image file located at: ' + imageFullPath);
+    let secrets = await getSecretsJson();
+    let apiToken = secrets['secrets']['photography_tools']['api_token'];
+    const response = await fetch(exifEndpoint, {
+        method: 'GET',
+        headers: {
+            'token': apiToken,
+            'imagePath': imageFullPath
+        }
+    });
+    appendToLog('PHOTOGRAPHY', 'TRACE', JSON.stringify(response.json());
+    return response.json();
 }
 
 async function populateMetadataJsonWithExifFields(metadataJson)
