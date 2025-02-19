@@ -28,7 +28,7 @@ async function createNewFolderWithMetadata(tags)
         const newDirectory = photographyDirectory + '/' + uuid;
         
         await fs.promises.mkdir(newDirectory);
-        await fs.promises.chown(newDirectory, 'cjr', 'cjr', (error) => { 
+        await fs.promises.chown(newDirectory, 1000, 1000, (error) => { 
             if (error) 
             {
                 appendToLog('PHOTOGRAPHY', 'ERROR', 'Failed to chown new folder at ' + newDirectory + '\nError message: ' + error.message);
