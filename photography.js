@@ -2,13 +2,17 @@ import express from 'express';
 const photographyRouter = express.Router();
 
 import { appendToLog } from './utils.js';
+import { getSecretsJson } from './redistools.js';
 import { exiftool } from "exiftool-vendored";
 
 import { readFile } from 'fs/promises';
 import * as fs from 'fs';
 import * as path from 'path';
 
+import { v4 as uuidv4 } from 'uuid';
+
 import { MongoClient } from "mongodb";
+import { create } from 'domain';
 
 // Not port forwarded so creds can be in GitHub repo without issue
 const uri = "mongodb://admin:admin@192.168.0.121:27017";
@@ -16,13 +20,80 @@ const photographyDirectory = "/srv/http/images/photography";
 
 let tags = {};
 
+async function createNewFolderWithMetadata(tags)
+{
+    try 
+    {
+        let uuid = uuidv4(); // ⇨ '9b1deb4d-3b7d-4bad-9bdd-2b0d7b3dcb6d'
+        const newDirectory = photographyDirectory + '/' + uuid;
+        
+        if (!fs.existsSync(newDirectory)) 
+        {
+            fs.mkdirSync(newDirectory);
+        }
+
+        let metadataJson = {};
+        metadataJson['tags'] = tags;
+        metadataJson['id'] = uuid;
+        metadataJson['uploadTimestamp'] = Math.floor(Date.now() / 1000);
+
+        const metadataFilePath = newDirectory + '/metadata.json';
+        fs.writeFile(metadataFilePath, JSON.stringify(metadataJson), (err) => {
+            if (err)
+            {
+                appendToLog('PHOTOGRAPHY', 'ERROR', 'Failed to create metadata file at ' + metadataFilePath + '\nError message: ' + err.message);
+            }
+            else 
+            {
+                appendToLog('PHOTOGRAPHY', 'INFO', 'Created new metadata file at ' + metadataFilePath);
+            }
+        });
+
+        return uuid;
+    }
+    catch (err) 
+    {
+        console.error(err);
+    }
+}
+
+photographyRouter.post('/create-photo', async (req, res) => {
+    try
+    {
+        let authToken = req.header('token');
+        let secrets = await getSecretsJson();
+        if(authToken !== secrets['secrets']['photography_tools']['auth_token'])
+        {
+            res.status(401);
+            res.send();
+        }
+        else
+        {
+            // Pass something formatted like { "wildlife": true, "bird": true}
+            let tags = req.body;
+            appendToLog('PHOTOGRAPHY', 'TRACE', 'User at ' + req.ip + ' submitted a new photo request with tags: ' + JSON.stringify(tags));
+
+            let uuid = await createNewFolderWithMetadata(tags);
+            res.json({ "uuid": uuid});
+            res.status(201);
+            res.send();
+        }
+    }
+    catch(err)
+    {
+        appendToLog('PHOTOGRAPHY', 'ERROR', 'Exception thrown getting photos: ' + err.message);
+        res.status(500);
+        res.send();
+    }
+});
+
 async function getExifDataForPhoto(metadataJson)
 {
     try 
     {
         let imageFullPath = photographyDirectory + '/' + metadataJson['id'] + '/' + metadataJson['raw'];
 
-        appendToLog('PHOTOGRAPHY', 'TRACE', 'Extracting EXIF data from image file located at: ' + imageFullPath);
+        appendToLog('PHOTOGRAPHY', 'INFO', 'Extracting EXIF data from image file located at: ' + imageFullPath);
         try
         {
             const exifData = await exiftool.read(imageFullPath);
@@ -30,6 +101,7 @@ async function getExifDataForPhoto(metadataJson)
         }
         finally
         {
+            // Apparently don't need this - docs are unclear what the implications of never calling it are.
             // await exiftool.end();
         }
     }
@@ -81,7 +153,7 @@ async function processFileForReloadingTables(path)
                 }
                 else 
                 {
-                    appendToLog('PHOTOGRAPHY', 'TRACE', 'Wrote out metadata information to ' + path);
+                    appendToLog('PHOTOGRAPHY', 'INFO', 'Wrote out metadata information to ' + path);
                 }
             });
     
@@ -93,7 +165,7 @@ async function processFileForReloadingTables(path)
             const options = { upsert: true };
             await photographyCollection.updateOne(query, update, options);
             await client.close();
-            appendToLog('PHOTOGRAPHY', 'TRACE', 'Upserted photo with id ' + metadata['id'] + '.');
+            appendToLog('PHOTOGRAPHY', 'INFO', 'Upserted photo with id ' + metadata['id'] + '.');
         }
         catch(err) 
         {
@@ -144,7 +216,7 @@ async function updateTagsForReloadingTables()
         const tagsCollection = photographyDatabase.collection("tags");
         await tagsCollection.insertOne(tags);
         await client.close();
-        appendToLog('PHOTOGRAPHY', 'TRACE', 'Inserted tags: ' + JSON.stringify(tags));
+        appendToLog('PHOTOGRAPHY', 'INFO', 'Inserted tags: ' + JSON.stringify(tags));
     }
     catch(err) 
     {
@@ -156,7 +228,7 @@ photographyRouter.put('/reload-tables', async (req, res) => {
     
     try
     {
-        appendToLog('PHOTOGRAPHY', 'TRACE', 'Triggered reload for MongoDB photography tables.');
+        appendToLog('PHOTOGRAPHY', 'INFO', 'Triggered reload for MongoDB photography tables.');
 
         // Clear the photos and tags collections
         let client = new MongoClient(uri);
