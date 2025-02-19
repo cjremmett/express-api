@@ -54,13 +54,10 @@ async function processFileForReloadingTables(path)
             let metadata = JSON.parse(await readFile(path, "utf8"));
 
             // Update the tags JSON
-            for(const tag of metadata['tags'])
+            for(const tag of Object.keys(metadata['tags']))
             {
                 tags[tag] = true;
-                appendToLog('PHOTOGRAPHY', 'DEBUG', 'Tag is: ' + tag);
             }
-
-            appendToLog('PHOTOGRAPHY', 'DEBUG', 'Tags is now: ' + JSON.stringify(tags));
 
             await populateMetadataJsonWithExifFields(metadata);
             fs.writeFile(path, JSON.stringify(metadata), (err) => {
