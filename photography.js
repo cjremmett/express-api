@@ -62,9 +62,7 @@ photographyRouter.post('/create-photo', async (req, res) => {
     {
         let authToken = req.header('token');
         let secrets = await getSecretsJson();
-        appendToLog('PHOTOGRAPHY', 'TRACE', authToken);
-        appendToLog('PHOTOGRAPHY', 'TRACE', secrets['secrets']['photography_tools']['auth_token']);
-        if(authToken === secrets['secrets']['photography_tools']['auth_token'])
+        if(authToken === secrets['secrets']['photography_tools']['api_token'])
         {
             // Pass something formatted like { "wildlife": true, "bird": true}
             let tags = req.body;
