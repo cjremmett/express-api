@@ -34,10 +34,10 @@ async function getExifDataForPhoto(metadataJson)
                 'imagePath': imageFullPath
             }
         });
-        jsonBody = await response.json();
+        //jsonBody = await response.json();
         jsonText = await response.text();
         appendToLog('PHOTOGRAPHY', 'TRACE', jsonText);
-        return jsonBody;
+        return {};
     }
     catch(err) 
     {
