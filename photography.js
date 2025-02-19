@@ -30,7 +30,7 @@ async function getExifDataForPhoto(metadataJson)
             'imagePath': imageFullPath
         }
     });
-    appendToLog('PHOTOGRAPHY', 'TRACE', JSON.stringify(response.json());
+    appendToLog('PHOTOGRAPHY', 'TRACE', JSON.stringify(response.json()));
     return response.json();
 }
 
