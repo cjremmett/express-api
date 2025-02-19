@@ -9,7 +9,7 @@ import * as path from 'path';
 
 import { MongoClient } from "mongodb";
 
-import ExifImage from 'exif';
+import { exiftool } from "exiftool-vendored";
 
 // Not port forwarded so creds can be in GitHub repo without issue
 const uri = "mongodb://admin:admin@192.168.0.121:27017";
@@ -23,16 +23,15 @@ async function populateMetadataTagsForPhoto(metadataJson)
     {
         let imageFullPath = photographyDirectory + '/' + metadataJson['id'] + '/' + metadataJson['raw'];
         appendToLog('PHOTOGRAPHY', 'TRACE', 'Attempting to extract EXIF data from image file located at: ' + imageFullPath);
-        new ExifImage({ image : imageFullPath }, function (error, exifData) {
-            if (error)
-            {
-                appendToLog('PHOTOGRAPHY', 'ERROR', 'Exception thrown extracting EXIF data from image file located at: ' + imageFullPath + '\nError message: ' + error.message);
-            }
-            else
-            {
-                appendToLog('PHOTOGRAPHY', 'TRACE', 'ExifData: ' + JSON.stringify(exifData));
-            }
-        });
+        try
+        {
+            const tags = await exiftool.read(imageFullPath);
+            console.log(tags);
+        }
+        finally
+        {
+            await exiftool.end();
+        }
     }
     catch (error)
     {
