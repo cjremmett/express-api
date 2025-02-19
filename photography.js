@@ -26,7 +26,7 @@ async function populateMetadataTagsForPhoto(metadataJson)
         try
         {
             const tags = await exiftool.read(imageFullPath);
-            console.log(tags);
+            appendToLog('PHOTOGRAPHY', 'TRACE', JSON.stringify(tags));
         }
         finally
         {
