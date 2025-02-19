@@ -17,26 +17,32 @@ const photographyDirectory = "/srv/http/images/photography";
 
 let tags = {};
 
-async function populateMetadataTagsForPhoto(metadataJson)
+async function getExifDataForPhoto(metadataJson)
 {
+    let imageFullPath = photographyDirectory + '/' + metadataJson['id'] + '/' + metadataJson['raw'];
+    appendToLog('PHOTOGRAPHY', 'TRACE', 'Extracting EXIF data from image file located at: ' + imageFullPath);
     try
     {
-        let imageFullPath = photographyDirectory + '/' + metadataJson['id'] + '/' + metadataJson['raw'];
-        appendToLog('PHOTOGRAPHY', 'TRACE', 'Attempting to extract EXIF data from image file located at: ' + imageFullPath);
-        try
-        {
-            const tags = await exiftool.read(imageFullPath);
-            appendToLog('PHOTOGRAPHY', 'TRACE', JSON.stringify(tags));
-        }
-        finally
-        {
-            await exiftool.end();
-        }
+        const exifData = await exiftool.read(imageFullPath);
+        return exifData;
     }
-    catch (error)
+    finally
     {
-        appendToLog('PHOTOGRAPHY', 'ERROR', 'Exception thrown in populateMetadataTagsForPhoto: ' + error.message);
+        await exiftool.end();
+        appendToLog('PHOTOGRAPHY', 'TRACE', 'ended exiftool');
     }
+}
+
+async function populateMetadataJsonWithExifFields(metadataJson)
+{
+    let exifData = await getExifDataForPhoto(metadataJson);
+    metadataJson['camera'] = exifData['Make'] + ' ' + exifData['Model'];
+    metadataJson['lens'] = exifData['LensSpec'];
+    metadataJson['focalLength'] = exifData['FocalLength'].split('.')[0] + ' mm';
+    metadataJson['fNumber'] = exifData['FNumber'];
+    metadataJson['shutterSpeed'] = exifData['ShutterSpeed'];
+    metadataJson['iso'] = exifData['ISO'];
+    return metadataJson;
 }
 
 async function processFileForReloadingTables(path)
@@ -54,7 +60,8 @@ async function processFileForReloadingTables(path)
                 tags[tag] = true;
             }
 
-            await populateMetadataTagsForPhoto(metadata);
+            await populateMetadataJsonWithExifFields(metadata);
+            appendToLog('PHOTOGRAPHY', 'TRACE', JSON.stringify(metadata));
     
             const client = new MongoClient(uri);
             const photographyDatabase = client.db("photography");
