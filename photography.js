@@ -29,7 +29,6 @@ async function getExifDataForPhoto(metadataJson)
     finally
     {
         await exiftool.end();
-        appendToLog('PHOTOGRAPHY', 'TRACE', 'ended exiftool');
     }
 }
 
@@ -39,7 +38,7 @@ async function populateMetadataJsonWithExifFields(metadataJson)
     metadataJson['camera'] = exifData['Make'] + ' ' + exifData['Model'];
     metadataJson['lens'] = exifData['LensSpec'];
     metadataJson['focalLength'] = exifData['FocalLength'].split('.')[0] + ' mm';
-    metadataJson['fNumber'] = exifData['FNumber'];
+    metadataJson['fNumber'] = 'f/' + exifData['FNumber'];
     metadataJson['shutterSpeed'] = exifData['ShutterSpeed'];
     metadataJson['iso'] = exifData['ISO'];
     return metadataJson;
@@ -61,7 +60,16 @@ async function processFileForReloadingTables(path)
             }
 
             await populateMetadataJsonWithExifFields(metadata);
-            appendToLog('PHOTOGRAPHY', 'TRACE', JSON.stringify(metadata));
+            fs.writeFile(path, JSON.stringify(metadata), (err) => {
+                if (err)
+                {
+                    appendToLog('PHOTOGRAPHY', 'ERROR', 'Failed to write to file at ' + path + '\nError message: ' + err.message);
+                }
+                else 
+                {
+                    appendToLog('PHOTOGRAPHY', 'TRACE', 'Wrote out metadata information to ' + path);
+                }
+            });
     
             const client = new MongoClient(uri);
             const photographyDatabase = client.db("photography");
