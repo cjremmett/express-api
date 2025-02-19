@@ -35,7 +35,7 @@ async function getExifDataForPhoto(metadataJson)
             }
         });
         //jsonBody = await response.json();
-        jsonText = await response.text();
+        let jsonText = await response.text();
         appendToLog('PHOTOGRAPHY', 'TRACE', jsonText);
         return {};
     }
