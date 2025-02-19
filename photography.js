@@ -9,7 +9,7 @@ import * as path from 'path';
 
 import { MongoClient } from "mongodb";
 
-import { v4 as uuidv4 } from 'uuid';
+var ExifImage = require('exif').ExifImage;
 
 // Not port forwarded so creds can be in GitHub repo without issue
 const uri = "mongodb://admin:admin@192.168.0.121:27017";
@@ -19,8 +19,25 @@ let tags = {};
 
 async function populateMetadataTagsForPhoto(metadataJson)
 {
-    metadataJson['id'] = uuidv4(); // ⇨ '9b1deb4d-3b7d-4bad-9bdd-2b0d7b3dcb6d'
-    
+    try
+    {
+        let imageFullPath = photographyDirectory + '/' + metadataJson['id'] + '/' + metadataJson['raw'];
+        appendToLog('PHOTOGRAPHY', 'TRACE', 'Attempting to extract EXIF data from image file located at: ' + imageFullPath);
+        new ExifImage({ image : imageFullPath }, function (error, exifData) {
+            if (error)
+            {
+                appendToLog('PHOTOGRAPHY', 'ERROR', 'Exception thrown extracting EXIF data from image file located at: ' + imageFullPath + '\nError message: ' + err.message);
+            }
+            else
+            {
+                appendToLog('PHOTOGRAPHY', 'TRACE', 'ExifData: ' + JSON.stringify(exifData));
+            }
+        });
+    }
+    catch (error)
+    {
+        appendToLog('PHOTOGRAPHY', 'ERROR', 'Exception thrown in populateMetadataTagsForPhoto: ' + err.message);
+    }
 }
 
 async function processFileForReloadingTables(path)
@@ -37,6 +54,8 @@ async function processFileForReloadingTables(path)
             {
                 tags[tag] = true;
             }
+
+            await populateMetadataTagsForPhoto(metadata);
     
             const client = new MongoClient(uri);
             const photographyDatabase = client.db("photography");
