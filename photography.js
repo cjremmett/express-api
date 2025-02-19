@@ -26,7 +26,7 @@ async function populateMetadataTagsForPhoto(metadataJson)
         new ExifImage({ image : imageFullPath }, function (error, exifData) {
             if (error)
             {
-                appendToLog('PHOTOGRAPHY', 'ERROR', 'Exception thrown extracting EXIF data from image file located at: ' + imageFullPath + '\nError message: ' + err.message);
+                appendToLog('PHOTOGRAPHY', 'ERROR', 'Exception thrown extracting EXIF data from image file located at: ' + imageFullPath + '\nError message: ' + error.message);
             }
             else
             {
