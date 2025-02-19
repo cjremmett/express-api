@@ -19,7 +19,9 @@ let tags = {};
 
 async function getExifDataForPhoto(metadataJson)
 {
-    let imageFullPath = photographyDirectory + '/' + metadataJson['id'] + '/' + metadataJson['raw'];
+    // Point PIL to the full image (which is PNG) since raw files are not supported, even for EXIF extraction.
+    let imageFullPath = photographyDirectory + '/' + metadataJson['id'] + '/' + metadataJson['full'];
+    
     appendToLog('PHOTOGRAPHY', 'TRACE', 'Making API call to get EXIF data from image file located at: ' + imageFullPath);
     let secrets = await getSecretsJson();
     let apiToken = secrets['secrets']['photography_tools']['api_token'];
