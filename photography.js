@@ -1,6 +1,9 @@
 import express from 'express';
 const photographyRouter = express.Router();
 
+import { multer }  from 'multer';
+const upload = multer({ dest: "/srv/http/photography/" });
+
 import { appendToLog } from './utils.js';
 import { getSecretsJson } from './redistools.js';
 import { exiftool } from "exiftool-vendored";
@@ -89,17 +92,23 @@ photographyRouter.post('/create-photo', async (req, res) => {
     }
 });
 
-photographyRouter.put('/replace-photo/:photoId', async (req, res) => {
-    
+photographyRouter.put('/upload-photos/:photoId',  upload.array("photos"), uploadPhotos);
+
+async function uploadPhotos(req, res) 
+{
     try
     {
+        console.log(req.body);
+        console.log(req.files);
+        res.json({ message: "Successfully uploaded files" });
+
         let authToken = req.header('token');
         let secrets = await getSecretsJson();
         if(authToken === secrets['secrets']['photography_tools']['api_token'])
         {
             let photoId = req.params['photoId'];
             let photoTypeKey = req.query.type;
-            appendToLog('PHOTOGRAPHY', 'TRACE', 'User at ' + req.ip + ' replaced a photo.');
+            appendToLog('PHOTOGRAPHY', 'TRACE', 'User at ' + req.ip + ' replaced a photo.' + photoId + ' ' + photoTypeKey);
 
             
             res.status(201);
@@ -117,7 +126,37 @@ photographyRouter.put('/replace-photo/:photoId', async (req, res) => {
         res.status(500);
         res.send();
     }
-});
+}
+
+// photographyRouter.put('/upload-photos/:photoId', async (req, res) => {
+    
+//     try
+//     {
+//         let authToken = req.header('token');
+//         let secrets = await getSecretsJson();
+//         if(authToken === secrets['secrets']['photography_tools']['api_token'])
+//         {
+//             let photoId = req.params['photoId'];
+//             let photoTypeKey = req.query.type;
+//             appendToLog('PHOTOGRAPHY', 'TRACE', 'User at ' + req.ip + ' replaced a photo.');
+
+            
+//             res.status(201);
+//             res.send();
+//         }
+//         else
+//         {
+//             res.status(401);
+//             res.send();
+//         }
+//     }
+//     catch(err)
+//     {
+//         appendToLog('PHOTOGRAPHY', 'ERROR', 'Exception thrown replacing photo: ' + err.message);
+//         res.status(500);
+//         res.send();
+//     }
+// });
 
 async function getExifDataForPhoto(metadataJson)
 {
