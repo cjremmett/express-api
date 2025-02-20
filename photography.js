@@ -106,18 +106,33 @@ async function uploadPhotos(req, res)
 {
     try
     {
-        console.log(req.body);
-        console.log(req.files);
-        res.json({ message: "Successfully uploaded files" });
-
         let authToken = req.header('token');
         let secrets = await getSecretsJson();
         if(authToken === secrets['secrets']['photography_tools']['api_token'])
         {
             let photoId = req.params['photoId'];
             let photoTypeKey = req.query.type;
-            appendToLog('PHOTOGRAPHY', 'TRACE', 'User at ' + req.ip + ' replaced a photo.' + photoId + ' ' + photoTypeKey);
-
+            for(const photoFile of req.files)
+            {
+                let uploadTempFileLocation = '/srv/http/images/photography/' + photoFile.originalname;
+                let finalDestinationLocation = '/srv/http/images/photography/' + photoId + '/' + photoFile.originalname;
+                await fs.promises.move(uploadTempFileLocation, finalDestinationLocation, function (err) {
+                    if (err)
+                    {
+                        appendToLog('PHOTOGRAPHY', 'ERROR', 'Failed to move a photo from the temp directory to the photo folder.\nError message: ' + err.message);
+                    }
+                    else
+                    {
+                        appendToLog('PHOTOGRAPHY', 'TRACE', 'Wrote uploaded photo to ' + finalDestinationLocation);
+                    }
+                });
+                await fs.promises.chown(finalDestinationLocation, 1000, 1000, (err) => {
+                    if (err)
+                    {
+                        appendToLog('PHOTOGRAPHY', 'ERROR', 'Failed to chown image at ' + finalDestinationLocation + '\nError message: ' + err.message);
+                    }
+                });
+            }
             
             res.status(201);
             res.send();
@@ -130,7 +145,7 @@ async function uploadPhotos(req, res)
     }
     catch(err)
     {
-        appendToLog('PHOTOGRAPHY', 'ERROR', 'Exception thrown replacing photo: ' + err.message);
+        appendToLog('PHOTOGRAPHY', 'ERROR', 'Exception thrown uploading photos: ' + err.message);
         res.status(500);
         res.send();
     }
