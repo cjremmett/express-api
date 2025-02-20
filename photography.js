@@ -1,7 +1,7 @@
 import express from 'express';
 const photographyRouter = express.Router();
 
-import { multer }  from 'multer';
+import multer from 'multer';
 const upload = multer({ dest: "/srv/http/photography/" });
 
 import { appendToLog } from './utils.js';
