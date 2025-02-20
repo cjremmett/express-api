@@ -116,7 +116,7 @@ async function uploadPhotos(req, res)
             {
                 let uploadTempFileLocation = '/srv/http/images/photography/' + photoFile.originalname;
                 let finalDestinationLocation = '/srv/http/images/photography/' + photoId + '/' + photoFile.originalname;
-                await fs.move(uploadTempFileLocation, finalDestinationLocation, function (err) {
+                await fs.promises.rename(uploadTempFileLocation, finalDestinationLocation, function (err) {
                     if (err)
                     {
                         appendToLog('PHOTOGRAPHY', 'ERROR', 'Failed to move a photo from the temp directory to the photo folder.\nError message: ' + err.message);
