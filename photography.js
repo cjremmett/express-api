@@ -2,7 +2,15 @@ import express from 'express';
 const photographyRouter = express.Router();
 
 import multer from 'multer';
-const upload = multer({ dest: "/srv/http/photography/" });
+const storage = multer.diskStorage({ 
+    destination: function (req, file, cb) {
+        cb(null, '/srv/http/images/photography/')
+    },
+    filename: function (req, file, cb) {
+        cb(null, file.originalname)
+    }
+});
+const upload = multer({ storage: storage });
 
 import { appendToLog } from './utils.js';
 import { getSecretsJson } from './redistools.js';
@@ -92,9 +100,9 @@ photographyRouter.post('/create-photo', async (req, res) => {
     }
 });
 
-photographyRouter.put('/upload-photos/:photoId',  upload.array("photos"), uploadPhotos);
+photographyRouter.put('/upload-photos/:photoId', upload.array("photos"), uploadPhotos);
 
-async function uploadPhotos(req, res) 
+async function uploadPhotos(req, res)
 {
     try
     {
