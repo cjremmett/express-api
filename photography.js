@@ -1,10 +1,14 @@
 import express from 'express';
 const photographyRouter = express.Router();
 
+// Not port forwarded so creds can be in GitHub repo without issue
+const uri = "mongodb://admin:admin@192.168.0.121:27017";
+const photographyDirectory = "/srv/http/images/photography";
+
 import multer from 'multer';
 const storage = multer.diskStorage({ 
     destination: function (req, file, cb) {
-        cb(null, '/srv/http/images/photography/')
+        cb(null, photographyDirectory)
     },
     filename: function (req, file, cb) {
         cb(null, file.originalname)
@@ -24,12 +28,11 @@ import { v4 as uuidv4 } from 'uuid';
 
 import { MongoClient } from "mongodb";
 
-// Not port forwarded so creds can be in GitHub repo without issue
-const uri = "mongodb://admin:admin@192.168.0.121:27017";
-const photographyDirectory = "/srv/http/images/photography";
+
 
 let tags = {};
 
+// Creates a new UUID photo folder and puts a metadata file in it
 async function createNewFolderWithMetadata(tags)
 {
     try
@@ -70,6 +73,7 @@ async function createNewFolderWithMetadata(tags)
     }
 }
 
+// Create a new UUID photo folder and send the ID back to the client so they can proceed to upload photos
 photographyRouter.post('/create-photo', async (req, res) => {
     try
     {
@@ -102,6 +106,9 @@ photographyRouter.post('/create-photo', async (req, res) => {
 
 photographyRouter.put('/upload-photos/:photoId', upload.array("photos"), uploadPhotos);
 
+// For each file, copy it into the UUID photo folder based on the parameter.
+// The file names must be raw, full, big_thumb, small_thumb.
+// This is so we can identify which type of photo it is and update the metadata accordingly.
 async function uploadPhotos(req, res)
 {
     try
@@ -113,8 +120,8 @@ async function uploadPhotos(req, res)
             let photoId = req.params['photoId'];
             for(const photoFile of req.files)
             {
-                let uploadTempFileLocation = '/srv/http/images/photography/' + photoFile.originalname;
-                let finalDestinationLocation = '/srv/http/images/photography/' + photoId + '/' + photoFile.originalname;
+                let uploadTempFileLocation = photographyDirectory + '/' + photoFile.originalname;
+                let finalDestinationLocation = photographyDirectory + '/' + photoId + '/' + photoFile.originalname;
                 await fs.promises.rename(uploadTempFileLocation, finalDestinationLocation, function (err) {
                     if (err)
                     {
@@ -133,7 +140,7 @@ async function uploadPhotos(req, res)
                     }
                 });
 
-                let metadataLocation = '/srv/http/images/photography/' + photoId + '/metadata.json';
+                let metadataLocation = photographyDirectory + '/' + photoId + '/metadata.json';
                 let metadata = JSON.parse(await readFile(metadataLocation, "utf8"));
                 metadata[(photoFile.originalname).split('.')[0]] = photoFile.originalname;
                 fs.writeFile(metadataLocation, JSON.stringify(metadata), (err) => {
@@ -179,7 +186,7 @@ async function getExifDataForPhoto(metadataJson)
         }
         finally
         {
-            // Apparently don't need this - docs are unclear what the implications of never calling it are.
+            // Apparently we don't need this - docs are unclear what the implications of never calling it are.
             // await exiftool.end();
         }
     }
@@ -193,7 +200,9 @@ async function populateMetadataJsonWithExifFields(metadataJson)
 {
     try 
     {
+        // Pulls the EXIF data from the raw file in the metadata
         let exifData = await getExifDataForPhoto(metadataJson);
+
         metadataJson['camera'] = exifData['Make'] + ' ' + exifData['Model'];
         metadataJson['lens'] = exifData['LensSpec'];
         metadataJson['focalLength'] = exifData['FocalLength'].split('.')[0] + ' mm';
