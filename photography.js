@@ -111,7 +111,6 @@ async function uploadPhotos(req, res)
         if(authToken === secrets['secrets']['photography_tools']['api_token'])
         {
             let photoId = req.params['photoId'];
-            let photoTypeKey = req.query.type;
             for(const photoFile of req.files)
             {
                 let uploadTempFileLocation = '/srv/http/images/photography/' + photoFile.originalname;
@@ -124,12 +123,27 @@ async function uploadPhotos(req, res)
                     else
                     {
                         appendToLog('PHOTOGRAPHY', 'TRACE', 'Wrote uploaded photo to ' + finalDestinationLocation);
+                        console.log('test');
                     }
                 });
                 await fs.promises.chown(finalDestinationLocation, 1000, 1000, (err) => {
                     if (err)
                     {
                         appendToLog('PHOTOGRAPHY', 'ERROR', 'Failed to chown image at ' + finalDestinationLocation + '\nError message: ' + err.message);
+                    }
+                });
+
+                let metadataLocation = '/srv/http/images/photography/' + photoId + '/metadata.json';
+                let metadata = JSON.parse(await readFile(metadataLocation, "utf8"));
+                metadata[(photoFile.originalname).split('.')[0]] = photoFile.originalname;
+                fs.writeFile(metadataLocation, JSON.stringify(metadata), (err) => {
+                    if (err)
+                    {
+                        appendToLog('PHOTOGRAPHY', 'ERROR', 'Failed to write to file at ' + metadataLocation + '\nError message: ' + err.message);
+                    }
+                    else
+                    {
+                        appendToLog('PHOTOGRAPHY', 'INFO', 'Wrote out metadata information to ' + metadataLocation);
                     }
                 });
             }
@@ -150,36 +164,6 @@ async function uploadPhotos(req, res)
         res.send();
     }
 }
-
-// photographyRouter.put('/upload-photos/:photoId', async (req, res) => {
-    
-//     try
-//     {
-//         let authToken = req.header('token');
-//         let secrets = await getSecretsJson();
-//         if(authToken === secrets['secrets']['photography_tools']['api_token'])
-//         {
-//             let photoId = req.params['photoId'];
-//             let photoTypeKey = req.query.type;
-//             appendToLog('PHOTOGRAPHY', 'TRACE', 'User at ' + req.ip + ' replaced a photo.');
-
-            
-//             res.status(201);
-//             res.send();
-//         }
-//         else
-//         {
-//             res.status(401);
-//             res.send();
-//         }
-//     }
-//     catch(err)
-//     {
-//         appendToLog('PHOTOGRAPHY', 'ERROR', 'Exception thrown replacing photo: ' + err.message);
-//         res.status(500);
-//         res.send();
-//     }
-// });
 
 async function getExifDataForPhoto(metadataJson)
 {
