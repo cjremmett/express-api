@@ -122,34 +122,34 @@ async function uploadPhotos(req, res)
             {
                 let uploadTempFileLocation = photographyDirectory + '/' + photoFile.originalname;
                 let finalDestinationLocation = photographyDirectory + '/' + photoId + '/' + photoFile.originalname;
-                await fs.promises.rename(uploadTempFileLocation, finalDestinationLocation, function (err) {
+                await fs.promises.rename(uploadTempFileLocation, finalDestinationLocation, async function (err) {
                     if (err)
                     {
-                        appendToLog('PHOTOGRAPHY', 'ERROR', 'Failed to move a photo from the temp directory to the photo folder.\nError message: ' + err.message);
+                        await appendToLog('PHOTOGRAPHY', 'ERROR', 'Failed to move a photo from the temp directory to the photo folder.\nError message: ' + err.message);
                     }
                     else
                     {
-                        appendToLog('PHOTOGRAPHY', 'TRACE', 'Wrote uploaded photo to ' + finalDestinationLocation);
+                        await appendToLog('PHOTOGRAPHY', 'TRACE', 'Wrote uploaded photo to ' + finalDestinationLocation);
                     }
                 });
-                await fs.promises.chown(finalDestinationLocation, 1000, 1000, (err) => {
+                await fs.promises.chown(finalDestinationLocation, 1000, 1000, async function (err) {
                     if (err)
                     {
-                        appendToLog('PHOTOGRAPHY', 'ERROR', 'Failed to chown image at ' + finalDestinationLocation + '\nError message: ' + err.message);
+                        await appendToLog('PHOTOGRAPHY', 'ERROR', 'Failed to chown image at ' + finalDestinationLocation + '\nError message: ' + err.message);
                     }
                 });
 
                 let metadataLocation = photographyDirectory + '/' + photoId + '/metadata.json';
                 let metadata = JSON.parse(await readFile(metadataLocation, "utf8"));
                 metadata[(photoFile.originalname).split('.')[0]] = photoFile.originalname;
-                fs.writeFile(metadataLocation, JSON.stringify(metadata), (err) => {
+                fs.writeFile(metadataLocation, JSON.stringify(metadata), async function(err) {
                     if (err)
                     {
-                        appendToLog('PHOTOGRAPHY', 'ERROR', 'Failed to write to file at ' + metadataLocation + '\nError message: ' + err.message);
+                        await appendToLog('PHOTOGRAPHY', 'ERROR', 'Failed to write to file at ' + metadataLocation + '\nError message: ' + err.message);
                     }
                     else
                     {
-                        appendToLog('PHOTOGRAPHY', 'INFO', 'Wrote out metadata information to ' + metadataLocation);
+                        await appendToLog('PHOTOGRAPHY', 'INFO', 'Wrote out metadata information to ' + metadataLocation);
                     }
                 });
             }
@@ -164,14 +164,14 @@ async function uploadPhotos(req, res)
             for(const photoFile of req.files)
             {
                 let uploadTempFileLocation = photographyDirectory + '/' + photoFile.originalname;
-                await fs.promises.unlink(uploadTempFileLocation, function (err) {
+                await fs.promises.unlink(uploadTempFileLocation, async function (err) {
                     if (err)
                     {
-                        appendToLog('PHOTOGRAPHY', 'ERROR', 'Failed to remove a file uploaded by an unauthorized user.\nError message: ' + err.message);
+                        await appendToLog('PHOTOGRAPHY', 'ERROR', 'Failed to remove a file uploaded by an unauthorized user.\nError message: ' + err.message);
                     }
                     else
                     {
-                        appendToLog('PHOTOGRAPHY', 'WARNING', 'Removed a file uploaded by an unauthenticated user at: ' + uploadTempFileLocation);
+                        await appendToLog('PHOTOGRAPHY', 'WARNING', 'Removed a file uploaded by an unauthenticated user at: ' + uploadTempFileLocation);
                     }
                 });
             }
@@ -249,14 +249,14 @@ async function processFileForReloadingTables(path)
             }
 
             await populateMetadataJsonWithExifFields(metadata);
-            fs.writeFile(path, JSON.stringify(metadata), (err) => {
+            fs.writeFile(path, JSON.stringify(metadata), async function(err) {
                 if (err)
                 {
-                    appendToLog('PHOTOGRAPHY', 'ERROR', 'Failed to write to file at ' + path + '\nError message: ' + err.message);
+                    await appendToLog('PHOTOGRAPHY', 'ERROR', 'Failed to write to file at ' + path + '\nError message: ' + err.message);
                 }
                 else 
                 {
-                    appendToLog('PHOTOGRAPHY', 'INFO', 'Wrote out metadata information to ' + path);
+                    await appendToLog('PHOTOGRAPHY', 'INFO', 'Wrote out metadata information to ' + path);
                 }
             });
     
