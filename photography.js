@@ -172,6 +172,7 @@ async function uploadPhotos(req, res)
                     else
                     {
                         await appendToLog('PHOTOGRAPHY', 'WARNING', 'Removed a file uploaded by an unauthenticated user at: ' + uploadTempFileLocation);
+                        console.log('Removed a file uploaded by an unauthenticated user at: ' + uploadTempFileLocation);
                     }
                 });
             }
