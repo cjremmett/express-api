@@ -164,17 +164,15 @@ async function uploadPhotos(req, res)
             for(const photoFile of req.files)
             {
                 let uploadTempFileLocation = photographyDirectory + '/' + photoFile.originalname;
-                await fs.promises.unlink(uploadTempFileLocation, async function (err) {
-                    if (err)
-                    {
-                        await appendToLog('PHOTOGRAPHY', 'ERROR', 'Failed to remove a file uploaded by an unauthorized user.\nError message: ' + err.message);
-                    }
-                    else
-                    {
-                        await appendToLog('PHOTOGRAPHY', 'WARNING', 'Removed a file uploaded by an unauthenticated user at: ' + uploadTempFileLocation);
-                        console.log('Removed a file uploaded by an unauthenticated user at: ' + uploadTempFileLocation);
-                    }
-                });
+                let err = await fs.promises.unlink(uploadTempFileLocation);
+                if (err)
+                {
+                    await appendToLog('PHOTOGRAPHY', 'ERROR', 'Failed to remove a file uploaded by an unauthorized user.\nError message: ' + err.message);
+                }
+                else
+                {
+                    await appendToLog('PHOTOGRAPHY', 'WARNING', 'Removed a file uploaded by an unauthenticated user at: ' + uploadTempFileLocation);
+                }
             }
 
             res.status(401);
