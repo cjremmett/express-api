@@ -130,7 +130,6 @@ async function uploadPhotos(req, res)
                     else
                     {
                         appendToLog('PHOTOGRAPHY', 'TRACE', 'Wrote uploaded photo to ' + finalDestinationLocation);
-                        console.log('test');
                     }
                 });
                 await fs.promises.chown(finalDestinationLocation, 1000, 1000, (err) => {
@@ -160,6 +159,23 @@ async function uploadPhotos(req, res)
         }
         else
         {
+            // Multer uploads the files to the server when the endpoint is called, even if authentication fails
+            // We need to remove the files if authentication fails
+            for(const photoFile of req.files)
+            {
+                let uploadTempFileLocation = photographyDirectory + '/' + photoFile.originalname;
+                await fs.promises.unlink(uploadTempFileLocation, function (err) {
+                    if (err)
+                    {
+                        appendToLog('PHOTOGRAPHY', 'ERROR', 'Failed to remove a file uploaded by an unauthorized user.\nError message: ' + err.message);
+                    }
+                    else
+                    {
+                        appendToLog('PHOTOGRAPHY', 'WARNING', 'Removed a file uploaded by an unauthenticated user at: ' + uploadTempFileLocation);
+                    }
+                });
+            }
+
             res.status(401);
             res.send();
         }
